@@ -5,7 +5,7 @@ type SvgGridProps = {
 };
 
 export function SvgGrid({ grid }: SvgGridProps) {
-  let segments = [];
+  const segments: string[] = [];
 
   for (let r = 0; r < grid.rows; r++) {
     for (let c = 0; c < grid.cols; c++) {
@@ -35,7 +35,7 @@ export function SvgGrid({ grid }: SvgGridProps) {
       </g>
       <g fill="black">
         {grid.path.prevCell.map((row, r) =>
-          row.map(([pr, pc], c) => (
+          row.map(([pr], c) => (
             <circle
               key={`${r}-${c}`}
               cx={c * 10 + 5}

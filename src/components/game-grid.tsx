@@ -22,7 +22,6 @@ export function GameGrid({ grid, cellSize, borderWidth }: GameGridProps) {
   }, [grid]);
 
   const [breakpoints, setBreakpoints] = useState<Coordinates[]>([]);
-  const [animations, setAnimations] = useState<Set<number>>(() => new Set());
 
   const isFilled = useMemo(() => {
     const isFilled = Array.from({ length: grid.rows }, (_, r) =>
@@ -126,16 +125,6 @@ export function GameGrid({ grid, cellSize, borderWidth }: GameGridProps) {
               },
             }}
             transition={{ duration: ANIMATION_DURATION }}
-            onAnimationStart={() => {
-              setAnimations((prev) => new Set(prev.add(i)));
-            }}
-            onAnimationComplete={() => {
-              setAnimations((prev) => {
-                const newSet = new Set(prev);
-                newSet.delete(i);
-                return newSet;
-              });
-            }}
             className={clsx(
               "pointer-events-none absolute z-10 m-0.5 rounded-full bg-amber-400 transition duration-150",
               // animations.size && "brightness-103",
@@ -152,6 +141,8 @@ export function GameGrid({ grid, cellSize, borderWidth }: GameGridProps) {
     [breakpoints, startCell, cellSize, borderWidth, grid.cols, grid.rows],
   );
 
+  // @ts-expect-error unused function
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const onClickCell_v1 = (row: number, col: number) => {
     if (row !== tail[0] && col !== tail[1]) return;
 
@@ -267,10 +258,8 @@ export function GameGrid({ grid, cellSize, borderWidth }: GameGridProps) {
       {Array.from({ length: grid.rows }).map((_, r) => (
         <div key={r} className="flex">
           {Array.from({ length: grid.cols }).map((_, c) => {
-            const [pr, pc] = grid.path.prevCell[r][c];
-            const [nr, nc] = grid.path.nextCell[r][c];
-            const isStart = pr === -1;
-            const isEnd = nr === -1;
+            const isStart = grid.path.prevCell[r][c][0] === -1;
+            const isEnd = grid.path.nextCell[r][c][0] === -1;
 
             const markedOrder = grid.markedCells.findIndex(
               (mc) => mc[0] === r && mc[1] === c,

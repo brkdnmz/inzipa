@@ -66,17 +66,15 @@ export function generatePath(rows: number, cols: number): PathData {
       nextCell[nr][nc] = [row, col]; // redirect the neighbor to this cell
       prevCell[nnr][nnc] = [-1, -1];
 
-      let curR = row,
-        curC = col;
-      while (1) {
+      for (
+        let curR = row, curC = col;
+        curR !== -1;
+        [curR, curC] = nextCell[curR][curC]
+      ) {
         [prevCell[curR][curC], nextCell[curR][curC]] = [
           nextCell[curR][curC],
           prevCell[curR][curC],
         ];
-
-        [curR, curC] = nextCell[curR][curC];
-
-        if (curR === -1) break;
       }
       /// Update end
 
@@ -93,6 +91,7 @@ export function generatePath(rows: number, cols: number): PathData {
   let cr = sr,
     cc = sc;
 
+  // eslint-disable-next-line no-constant-condition
   while (1) {
     const cont = genPathRecursive(cr, cc);
 
