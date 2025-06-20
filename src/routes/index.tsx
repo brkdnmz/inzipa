@@ -1,24 +1,67 @@
 import { GameGrid } from "@/components/game-grid";
 import { BORDER_WIDTH, CELL_SIZE, GRID_SIZE } from "@/constants";
 import { generatePath } from "@/lib/path-gen";
+import { shuffleArray } from "@/lib/util";
+import type { GridData } from "@/types/grid";
 import { Box, Container } from "@mui/material";
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 
 export const Route = createFileRoute("/")({
   component: RouteComponent,
+  validateSearch: (searchParams) => {
+    return {
+      rows:
+        typeof searchParams.rows !== "number"
+          ? undefined
+          : searchParams.rows + (searchParams.rows % 2),
+      cols:
+        typeof searchParams.cols !== "number"
+          ? undefined
+          : searchParams.cols + (searchParams.cols % 2),
+    };
+  },
 });
 
 function RouteComponent() {
-  const [path] = useState(() => generatePath(GRID_SIZE.rows, GRID_SIZE.cols));
+  const searchParams = Route.useSearch();
 
-  const grid = useMemo(
-    () => ({
-      rows: GRID_SIZE.rows,
-      cols: GRID_SIZE.cols,
-      path,
-    }),
+  const rows = searchParams.rows ?? GRID_SIZE.rows;
+  const cols = searchParams.cols ?? GRID_SIZE.cols;
+
+  const [path] = useState(() => generatePath(rows, cols));
+
+  console.log(path.cells);
+
+  const markedCells = useMemo(
+    () =>
+      shuffleArray(
+        path.cells
+          .filter(
+            ([r, c]) =>
+              path.prevCell[r][c][0] !== -1 && path.nextCell[r][c][0] !== -1,
+          )
+          .map((c, i) => [c, i] as const),
+      )
+        .slice(0, 8)
+        .sort((a, b) => a[1] - b[1])
+        .map(([c]) => c),
     [path],
+  );
+
+  const grid: GridData = useMemo(
+    () => ({
+      rows: rows,
+      cols: cols,
+      path,
+      markedCells,
+      isMarked: Array.from({ length: rows }, () =>
+        Array.from({ length: cols }, () => false),
+      ).map((row, r) =>
+        row.map((_, c) => markedCells.some((mc) => mc[0] === r && mc[1] === c)),
+      ),
+    }),
+    [cols, markedCells, path, rows],
   );
 
   return (

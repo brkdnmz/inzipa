@@ -1,3 +1,4 @@
+import type { Coordinates } from "@/types/cell";
 import type { PathData } from "@/types/path";
 import { shuffleArray } from "./util";
 
@@ -86,19 +87,33 @@ export function generatePath(rows: number, cols: number): PathData {
     return null;
   }
 
-  let sr = Math.floor(Math.random() * rows);
-  let sc = Math.floor(Math.random() * cols);
+  const sr = Math.floor(Math.random() * rows);
+  const sc = Math.floor(Math.random() * cols);
+
+  let cr = sr,
+    cc = sc;
 
   while (1) {
-    const cont = genPathRecursive(sr, sc);
+    const cont = genPathRecursive(cr, cc);
 
     if (cont === null) break;
 
-    sr = cont[0];
-    sc = cont[1];
+    cr = cont[0];
+    cc = cont[1];
+  }
+
+  const cells: Coordinates[] = [];
+
+  cr = sr;
+  cc = sc;
+  cells.push([cr, cc]);
+  while (nextCell[cr][cc][0] !== -1) {
+    [cr, cc] = nextCell[cr][cc];
+    cells.push([cr, cc]);
   }
 
   return {
+    cells,
     prevCell,
     nextCell,
   };
