@@ -1,7 +1,7 @@
 import { GameGrid } from "@/components/game-grid";
 import { BORDER_WIDTH, CELL_SIZE, GRID_SIZE } from "@/constants";
 import { generatePath } from "@/lib/path-gen";
-import { shuffleArray } from "@/lib/util";
+import { array2d, shuffleArray } from "@/lib/util";
 import type { GridData } from "@/types/grid";
 import { Box, Container } from "@mui/material";
 import { createFileRoute } from "@tanstack/react-router";
@@ -55,9 +55,7 @@ function RouteComponent() {
       cols: cols,
       path,
       markedCells,
-      isMarked: Array.from({ length: rows }, () =>
-        Array.from({ length: cols }, () => false),
-      ).map((row, r) =>
+      isMarked: array2d(rows, cols, false).map((row, r) =>
         row.map((_, c) => markedCells.some((mc) => mc[0] === r && mc[1] === c)),
       ),
     }),

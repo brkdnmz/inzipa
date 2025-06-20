@@ -8,3 +8,15 @@ export function shuffleArray<T>(array: Array<T>) {
 
   return array;
 }
+
+export function array2d<T extends number | string | boolean | object>(
+  n: number,
+  m: number,
+  value: T | ((i: number, j: number) => T),
+): Array<Array<T>> {
+  return Array.from({ length: n }, (_, r) =>
+    Array.from({ length: m }, (_, c) =>
+      typeof value === "function" ? value(r, c) : value,
+    ),
+  );
+}

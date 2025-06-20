@@ -1,23 +1,23 @@
 import type { Coordinates } from "@/types/cell";
 import type { PathData } from "@/types/path";
-import { shuffleArray } from "./util";
+import { array2d, shuffleArray } from "./util";
 
 // Liked this one pretty much:
 // https://stackoverflow.com/questions/1987183/randomized-algorithm-for-finding-hamiltonian-path-in-a-directed-graph
 export function generatePath(rows: number, cols: number): PathData {
-  const prevCell: [row: number, col: number][][] = Array.from(
-    { length: rows },
-    () => Array.from({ length: cols }, () => [-1, -1]),
+  const prevCell: [row: number, col: number][][] = array2d(
+    rows,
+    cols,
+    [-1, -1],
   );
 
-  const nextCell: [row: number, col: number][][] = Array.from(
-    { length: rows },
-    () => Array.from({ length: cols }, () => [-1, -1]),
+  const nextCell: [row: number, col: number][][] = array2d(
+    rows,
+    cols,
+    [-1, -1],
   );
 
-  const visited: boolean[][] = Array.from({ length: rows }, () =>
-    Array.from({ length: cols }, () => false),
-  );
+  const visited: boolean[][] = array2d(rows, cols, false);
 
   const isSafe = (row: number, col: number) => {
     return row >= 0 && row < rows && col >= 0 && col < cols;

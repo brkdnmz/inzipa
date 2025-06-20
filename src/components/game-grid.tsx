@@ -1,4 +1,5 @@
 import { ANIMATION_DURATION } from "@/constants";
+import { array2d } from "@/lib/util";
 import type { Coordinates } from "@/types/cell";
 import type { GridData } from "@/types/grid";
 import clsx from "clsx";
@@ -17,11 +18,10 @@ export function GameGrid({ grid, cellSize, borderWidth }: GameGridProps) {
   const [breakpoints, setBreakpoints] = useState<Coordinates[]>([]);
 
   const isFilled = useMemo(() => {
-    const isFilled = Array.from({ length: grid.rows }, (_, r) =>
-      Array.from(
-        { length: grid.cols },
-        (_, c) => grid.path.prevCell[r][c][0] === -1,
-      ),
+    const isFilled = array2d(
+      grid.rows,
+      grid.cols,
+      (r, c) => grid.path.prevCell[r][c][0] === -1,
     );
 
     for (let i = 0; i < breakpoints.length; i++) {
