@@ -12,14 +12,7 @@ type GameGridProps = {
 };
 
 export function GameGrid({ grid, cellSize, borderWidth }: GameGridProps) {
-  const startCell: Coordinates = useMemo(() => {
-    for (let r = 0; r < grid.rows; r++) {
-      for (let c = 0; c < grid.cols; c++) {
-        if (grid.path.prevCell[r][c][0] === -1) return [r, c];
-      }
-    }
-    return [-1, -1];
-  }, [grid]);
+  const startCell: Coordinates = grid.path.cells[0];
 
   const [breakpoints, setBreakpoints] = useState<Coordinates[]>([]);
 
