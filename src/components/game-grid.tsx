@@ -77,8 +77,6 @@ export function GameGrid({ grid, cellSize, borderWidth }: GameGridProps) {
           ],
         )(totalLengthUntilPrev + curLength - 1);
 
-        console.log(i, startColor, endColor);
-
         return (
           <motion.div
             key={i}

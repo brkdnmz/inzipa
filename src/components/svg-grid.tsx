@@ -21,12 +21,6 @@ export function SvgGrid({ grid }: SvgGridProps) {
     <svg
       viewBox={`0 0 ${grid.cols * 10} ${grid.rows * 10}`}
       className="border-2 bg-slate-500"
-      onDrag={(e) => {
-        console.log(e);
-      }}
-      onDragStart={(e) => {
-        console.log(e);
-      }}
     >
       <g stroke="black" strokeWidth="1" fill="none">
         {segments.map((d, i) => (

@@ -31,8 +31,6 @@ function RouteComponent() {
 
   const [path] = useState(() => generatePath(rows, cols));
 
-  console.log(path.cells);
-
   const markedCells = useMemo(
     () =>
       shuffleArray(
