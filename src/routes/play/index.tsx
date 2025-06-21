@@ -6,6 +6,7 @@ import { array2d, shuffleArray } from "@/lib/util";
 import type { GridData } from "@/types/grid";
 import { Box } from "@mui/material";
 import { createFileRoute } from "@tanstack/react-router";
+import { AnimatePresence, motion } from "motion/react";
 import { useMemo, useState } from "react";
 
 export const Route = createFileRoute("/play/")({
@@ -64,7 +65,11 @@ function PlayGameComponent() {
   return (
     <GameProvider grid={grid}>
       <Box className="m-auto flex flex-1 items-center justify-center px-5 py-5">
-        <GameGrid cellSize={CELL_SIZE} borderWidth={BORDER_WIDTH} />
+        <AnimatePresence>
+          <motion.div initial={{ scale: 1.1 }} animate={{ scale: 1 }}>
+            <GameGrid cellSize={CELL_SIZE} borderWidth={BORDER_WIDTH} />
+          </motion.div>
+        </AnimatePresence>
       </Box>
     </GameProvider>
   );
