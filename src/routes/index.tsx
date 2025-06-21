@@ -1,6 +1,6 @@
-import { GRID_SIZE } from "@/constants";
-import { Box, Button } from "@mui/material";
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { GameSettingsForm } from "@/components/game-settings-form";
+import { Box } from "@mui/material";
+import { createFileRoute } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/")({
   component: RouteComponent,
@@ -9,11 +9,7 @@ export const Route = createFileRoute("/")({
 function RouteComponent() {
   return (
     <Box className="flex flex-1 items-center justify-center">
-      <Link to="/play" search={GRID_SIZE}>
-        <Button variant="contained" size="large">
-          Oyna
-        </Button>
-      </Link>
+      <GameSettingsForm />
     </Box>
   );
 }

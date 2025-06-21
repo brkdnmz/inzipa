@@ -1,11 +1,16 @@
-import * as MuiColors from "@mui/material/colors";
 import { createTheme } from "@mui/material/styles";
 
 export const theme = createTheme({
   palette: {
+    mode: "dark",
     primary: {
       main: "#ee5b16",
     },
-    secondary: MuiColors.yellow,
+    background: {
+      default: "#511F07",
+    },
+  },
+  typography: {
+    fontFamily: "Poppins, sans-serif",
   },
 });
