@@ -2,7 +2,11 @@ import "@fontsource/roboto/300.css";
 import "@fontsource/roboto/400.css";
 import "@fontsource/roboto/500.css";
 import "@fontsource/roboto/700.css";
-import { GlobalStyles, StyledEngineProvider } from "@mui/material";
+import {
+  GlobalStyles,
+  StyledEngineProvider,
+  ThemeProvider,
+} from "@mui/material";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
@@ -12,6 +16,7 @@ import "./index.css";
 // Import the generated route tree
 import { createRouter, RouterProvider } from "@tanstack/react-router";
 import { routeTree } from "./routeTree.gen";
+import { theme } from "./theme";
 
 // Create a new router instance
 const router = createRouter({ routeTree, basepath: "/inzipa/" });
@@ -31,9 +36,11 @@ createRoot(document.getElementById("root")!).render(
     <StyledEngineProvider enableCssLayer>
       <GlobalStyles styles="@layer theme, base, mui, components, utilities;" />
 
-      <QueryClientProvider client={queryClient}>
-        <RouterProvider router={router} />
-      </QueryClientProvider>
+      <ThemeProvider theme={theme}>
+        <QueryClientProvider client={queryClient}>
+          <RouterProvider router={router} />
+        </QueryClientProvider>
+      </ThemeProvider>
     </StyledEngineProvider>
   </StrictMode>,
 );

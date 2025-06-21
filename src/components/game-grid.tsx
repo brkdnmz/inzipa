@@ -1,61 +1,34 @@
 import { ANIMATION_DURATION } from "@/constants";
-import { array2d } from "@/lib/util";
-import type { Coordinates } from "@/types/cell";
-import type { GridData } from "@/types/grid";
+import { useGameContext } from "@/context/game-context";
 import clsx from "clsx";
 import { AnimatePresence, interpolate, motion } from "motion/react";
-import { useMemo, useState } from "react";
+import { useCallback, useMemo } from "react";
 
 type GameGridProps = {
-  grid: GridData;
   cellSize: number;
   borderWidth: number;
 };
 
-export function GameGrid({ grid, cellSize, borderWidth }: GameGridProps) {
-  const startCell: Coordinates = grid.path.cells[0];
-
-  const [breakpoints, setBreakpoints] = useState<Coordinates[]>([]);
-
-  const isFilled = useMemo(() => {
-    const isFilled = array2d(
-      grid.rows,
-      grid.cols,
-      (r, c) => grid.path.prevCell[r][c][0] === -1,
-    );
-
-    for (let i = 0; i < breakpoints.length; i++) {
-      const [r, c] = breakpoints[i];
-      const [pr, pc] = i ? breakpoints[i - 1] : startCell;
-      for (let cr = Math.min(r, pr); cr <= Math.max(r, pr); cr++) {
-        isFilled[cr][c] = true;
-      }
-      for (let cc = Math.min(c, pc); cc <= Math.max(c, pc); cc++) {
-        isFilled[r][cc] = true;
-      }
-    }
-
-    return isFilled;
-  }, [breakpoints, grid.cols, grid.path.prevCell, grid.rows, startCell]);
-
-  const tail = useMemo(
-    () =>
-      breakpoints.length ? breakpoints[breakpoints.length - 1] : startCell,
-    [breakpoints, startCell],
-  );
+export function GameGrid({ cellSize, borderWidth }: GameGridProps) {
+  const {
+    grid,
+    steps,
+    isVisited,
+    actions: { makeMove },
+  } = useGameContext();
 
   const pathSegments = useMemo(
     () =>
-      breakpoints.map(([r, c], i) => {
-        const prev = i === 0 ? startCell : breakpoints[i - 1];
+      steps.map(([r, c], i) => {
+        const prev = steps[Math.max(i - 1, 0)];
 
         let totalLengthUntilPrev = 0;
 
         for (let j = 0; j < i; j++) {
-          const [pr, pc] = breakpoints[j];
+          const [pr, pc] = steps[j];
           totalLengthUntilPrev +=
-            Math.abs(pr - (j ? breakpoints[j - 1][0] : startCell[0])) +
-            Math.abs(pc - (j ? breakpoints[j - 1][1] : startCell[1])) +
+            Math.abs(pr - steps[Math.max(j - 1, 0)][0]) +
+            Math.abs(pc - steps[Math.max(j - 1, 0)][1]) +
             1;
         }
 
@@ -118,129 +91,24 @@ export function GameGrid({ grid, cellSize, borderWidth }: GameGridProps) {
             transition={{ duration: ANIMATION_DURATION }}
             className={clsx(
               "pointer-events-none absolute z-10 m-0.5 rounded-full bg-amber-400 transition duration-150",
-              // animations.size && "brightness-103",
             )}
-            // style={{
-            //   top: `${Math.min(r, prev[0]) * cellSize + borderWidth}px`,
-            //   left: `${Math.min(c, prev[1]) * cellSize + borderWidth}px`,
-            //   right: `${(grid.cols - Math.max(c, prev[1]) - 1) * cellSize}px`,
-            //   bottom: `${(grid.rows - Math.max(r, prev[0]) - 1) * cellSize}px`,
-            // }}
           />
         );
       }),
-    [breakpoints, startCell, cellSize, borderWidth, grid.cols, grid.rows],
+    [steps, grid.rows, grid.cols, cellSize, borderWidth],
   );
 
-  // @ts-expect-error unused function
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const onClickCell_v1 = (row: number, col: number) => {
-    if (row !== tail[0] && col !== tail[1]) return;
+  const onClickCell = useCallback(
+    (row: number, col: number) => {
+      makeMove([row, col]);
+    },
+    [makeMove],
+  );
 
-    const prevTail =
-      breakpoints.length > 1 ? breakpoints[breakpoints.length - 2] : startCell;
-
-    const sameAsPrevTail = row === prevTail[0] && col === prevTail[1];
-
-    const isBetween =
-      Math.min(tail[0], prevTail[0]) <= row &&
-      row <= Math.max(tail[0], prevTail[0]) &&
-      Math.min(tail[1], prevTail[1]) <= col &&
-      col <= Math.max(tail[1], prevTail[1]);
-
-    const isSameDirection =
-      (row === tail[0] && tail[0] === prevTail[0]) ||
-      (col === tail[1] && tail[1] === prevTail[1]);
-
-    let nFilled = 0;
-
-    for (let c = Math.min(col, tail[1]); c <= Math.max(col, tail[1]); c++) {
-      if (c === tail[1]) continue;
-      nFilled += +isFilled[row][c];
-    }
-    for (let r = Math.min(row, tail[0]); r <= Math.max(row, tail[0]); r++) {
-      if (r === tail[0]) continue;
-      nFilled += +isFilled[r][col];
-    }
-
-    if (!isBetween && nFilled) return;
-
-    navigator.vibrate(10); // Vibrate on every successful click
-
-    setBreakpoints((prev) => [
-      ...prev.slice(0, prev.length - +(isBetween || isSameDirection)),
-      ...(sameAsPrevTail ? [] : [[row, col] as Coordinates]),
-    ]);
-  };
-
-  const onClickCell_v2 = (row: number, col: number) => {
-    if (isFilled[row][col]) {
-      let lastRemainingBreakpointIndex = breakpoints.length - 1;
-      let sameAsPrevTail = false;
-
-      while (lastRemainingBreakpointIndex >= 0) {
-        const tail = breakpoints[lastRemainingBreakpointIndex];
-        const prevTail =
-          lastRemainingBreakpointIndex > 0
-            ? breakpoints[lastRemainingBreakpointIndex - 1]
-            : startCell;
-
-        sameAsPrevTail = row === prevTail[0] && col === prevTail[1];
-
-        const isBetween =
-          Math.min(tail[0], prevTail[0]) <= row &&
-          row <= Math.max(tail[0], prevTail[0]) &&
-          Math.min(tail[1], prevTail[1]) <= col &&
-          col <= Math.max(tail[1], prevTail[1]);
-
-        lastRemainingBreakpointIndex--;
-
-        if (isBetween && !sameAsPrevTail) break;
-      }
-
-      setBreakpoints((prev) => [
-        ...prev.slice(0, lastRemainingBreakpointIndex + 1),
-        ...(sameAsPrevTail ? [] : [[row, col] as Coordinates]),
-      ]);
-    } else {
-      if (row !== tail[0] && col !== tail[1]) return;
-
-      const prevTail =
-        breakpoints.length > 1
-          ? breakpoints[breakpoints.length - 2]
-          : startCell;
-
-      const isBetween =
-        Math.min(tail[0], prevTail[0]) <= row &&
-        row <= Math.max(tail[0], prevTail[0]) &&
-        Math.min(tail[1], prevTail[1]) <= col &&
-        col <= Math.max(tail[1], prevTail[1]);
-
-      let nFilledBetween = 0;
-
-      for (let c = Math.min(col, tail[1]); c <= Math.max(col, tail[1]); c++) {
-        if (c === tail[1]) continue;
-        nFilledBetween += +isFilled[row][c];
-      }
-      for (let r = Math.min(row, tail[0]); r <= Math.max(row, tail[0]); r++) {
-        if (r === tail[0]) continue;
-        nFilledBetween += +isFilled[r][col];
-      }
-
-      const isSameDirection =
-        (row === tail[0] && tail[0] === prevTail[0]) ||
-        (col === tail[1] && tail[1] === prevTail[1]);
-
-      if (!isFilled[row][col] && !isBetween && nFilledBetween) return;
-
-      setBreakpoints((prev) => [
-        ...prev.slice(0, prev.length - +(isBetween || isSameDirection)),
-        [row, col] as Coordinates,
-      ]);
-    }
-
-    navigator.vibrate(10); // Vibrate on every successful click
-  };
+  // TODO: This runs on initial render too, which is not desired
+  // useEffect(() => {
+  //   navigator.vibrate(10); // Vibrate on every successful press
+  // }, [steps]);
 
   return (
     <div className="relative grid w-fit overflow-hidden rounded-lg border-5 border-orange-300 bg-orange-100">
@@ -259,7 +127,7 @@ export function GameGrid({ grid, cellSize, borderWidth }: GameGridProps) {
             return (
               <motion.div
                 key={`${r}-${c}`}
-                onClick={() => onClickCell_v2(r, c)}
+                onClick={() => onClickCell(r, c)}
                 className={clsx(
                   "flex cursor-pointer items-center justify-center border-orange-200 p-0.5",
                 )}
@@ -298,8 +166,8 @@ export function GameGrid({ grid, cellSize, borderWidth }: GameGridProps) {
 
                 {isEnd && (
                   <motion.div
-                    key={+isFilled[r][c]}
-                    initial={{ scale: isFilled[r][c] ? 1.5 : 1 }}
+                    key={+isVisited([r, c])}
+                    initial={{ scale: isVisited([r, c]) ? 1.5 : 1 }}
                     animate={{ scale: 1 }}
                     className="z-20 flex items-center justify-center rounded-full bg-amber-500 select-none"
                     style={{
@@ -313,8 +181,8 @@ export function GameGrid({ grid, cellSize, borderWidth }: GameGridProps) {
 
                 {markedOrder >= 0 && (
                   <motion.div
-                    key={+isFilled[r][c]}
-                    initial={{ scale: isFilled[r][c] ? 1.5 : 1 }}
+                    key={+isVisited([r, c])}
+                    initial={{ scale: isVisited([r, c]) ? 1.5 : 1 }}
                     animate={{ scale: 1 }}
                     className="z-20 flex items-center justify-center rounded-full bg-amber-500 select-none"
                     style={{
