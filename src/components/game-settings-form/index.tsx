@@ -16,7 +16,7 @@ export function GameSettingsForm() {
   }, [gameCode]);
 
   return (
-    <Stack gap={3}>
+    <Stack gap={3} className="max-w-3xs">
       <GameCodeInput
         value={gameCode}
         onChange={(e) => setGameCode(e.target.value)}

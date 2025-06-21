@@ -14,7 +14,7 @@
 }
 
 @layer base {
-  * {
+  body {
     @apply font-[Poppins];
     @apply text-white;
   }
