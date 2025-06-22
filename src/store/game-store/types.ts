@@ -17,7 +17,7 @@ export type GameState = {
 
 export type GameActions = {
   start: () => void;
-  makeMove: (targetCell: Coordinates) => void;
+  makeMove: (targetCell: Coordinates, isDragging?: boolean) => void;
 };
 
 export type GameStore = GameState & { actions: GameActions };

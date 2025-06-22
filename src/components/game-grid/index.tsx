@@ -7,10 +7,13 @@ import {
   useGameSteps,
   useIsCellVisited,
 } from "@/context/game-context/hooks";
-import { Box, Button, Stack } from "@mui/material";
+import { Box, Stack } from "@mui/material";
+import { useDrag } from "@use-gesture/react";
 import clsx from "clsx";
 import { AnimatePresence, interpolate, motion } from "motion/react";
-import { useCallback, useMemo } from "react";
+import { useCallback, useMemo, useRef } from "react";
+import { Congratulations } from "./congratulations";
+import { StartGame } from "./start-game";
 import { TimePassed } from "./time-passed";
 
 type GameGridProps = {
@@ -28,6 +31,21 @@ export function GameGrid({ cellSize, borderWidth }: GameGridProps) {
 
   const isStarted = startedAt !== null;
   const isFinished = finishedAt !== null;
+
+  // Will tidy this up later
+  const bindDragGesture = useDrag(
+    ({ xy }) => {
+      onDragCell({ x: xy[0], y: xy[1] });
+    },
+
+    {
+      pointer: {
+        capture: false,
+      },
+    },
+  );
+
+  const cellRefs = useRef<HTMLDivElement[]>([]);
 
   const pathSegments = useMemo(
     () =>
@@ -117,6 +135,30 @@ export function GameGrid({ cellSize, borderWidth }: GameGridProps) {
     [makeMove],
   );
 
+  const onDragCell = useCallback(
+    (pointer: { x: number; y: number }) => {
+      for (let r = 0; r < grid.rows; r++) {
+        for (let c = 0; c < grid.cols; c++) {
+          const cell = cellRefs.current[r * grid.cols + c];
+          if (cell) {
+            const cellRect = cell.getBoundingClientRect();
+
+            const isInCell =
+              pointer.x >= cellRect.left &&
+              pointer.x <= cellRect.right &&
+              pointer.y >= cellRect.top &&
+              pointer.y <= cellRect.bottom;
+
+            if (isInCell) {
+              makeMove([r, c], true);
+            }
+          }
+        }
+      }
+    },
+    [grid.cols, grid.rows, makeMove],
+  );
+
   // TODO: This runs on initial render too, which is not desired
   // useEffect(() => {
   //   navigator.vibrate(10); // Vibrate on every successful press
@@ -131,7 +173,10 @@ export function GameGrid({ cellSize, borderWidth }: GameGridProps) {
           "relative grid w-fit overflow-hidden rounded-lg border-5 border-orange-300 bg-orange-100",
         )}
       >
-        <Box className={clsx(!isStarted && "pointer-events-none")}>
+        <Box
+          {...bindDragGesture()}
+          className={clsx("touch-none", !isStarted && "pointer-events-none")}
+        >
           <AnimatePresence>{pathSegments}</AnimatePresence>
 
           {Array.from({ length: grid.rows }).map((_, r) => (
@@ -149,7 +194,7 @@ export function GameGrid({ cellSize, borderWidth }: GameGridProps) {
                     key={`${r}-${c}`}
                     onClick={() => onClickCell(r, c)}
                     className={clsx(
-                      "flex cursor-pointer items-center justify-center border-orange-200 p-0.5",
+                      "flex cursor-pointer touch-none items-center justify-center border-orange-200 p-0.5",
                     )}
                     initial={{
                       backgroundColor: "#fff0",
@@ -157,6 +202,9 @@ export function GameGrid({ cellSize, borderWidth }: GameGridProps) {
                     whileTap={{
                       backgroundColor: "#fff",
                       transition: { duration: 0 },
+                    }}
+                    ref={(el) => {
+                      if (el) cellRefs.current[r * grid.cols + c] = el;
                     }}
                     style={{
                       width: cellSize,
@@ -221,29 +269,9 @@ export function GameGrid({ cellSize, borderWidth }: GameGridProps) {
         </Box>
 
         <AnimatePresence>
-          {!isStarted && (
-            <motion.div
-              exit={{ opacity: 0, transition: { duration: 0.05 } }}
-              className="absolute inset-0 z-20 flex items-center justify-center text-white backdrop-blur-xl"
-            >
-              <Button
-                variant="contained"
-                onClick={start}
-                className="cursor-pointer rounded-lg px-4 py-2 text-lg font-semibold"
-              >
-                Başla
-              </Button>
-            </motion.div>
-          )}
+          {!isStarted && <StartGame onStart={start} />}
 
-          {isFinished && (
-            <motion.div
-              exit={{ opacity: 0, transition: { duration: 0.05 } }}
-              className="absolute inset-0 z-20 flex items-center justify-center bg-black/40 text-3xl font-bold text-amber-400 select-none"
-            >
-              Helal!
-            </motion.div>
-          )}
+          {isFinished && <Congratulations />}
         </AnimatePresence>
       </Box>
     </Stack>

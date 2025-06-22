@@ -1,6 +1,7 @@
 import {
   checkIfGridCompleted,
   isBetween,
+  isEqual,
   onSameRowOrCol,
 } from "@/lib/grid-helper";
 import type { GridData } from "@/types/grid";
@@ -35,9 +36,15 @@ export function createGameStore(grid: GridData) {
           set((state) => {
             state.startedAt = new Date();
           }),
-        makeMove: (targetCell) =>
+        makeMove: (targetCell, isDragging) =>
           set((state) => {
             if (state.finishedAt) return;
+
+            // For optimization
+            // prevent state update on negligible moves
+            if (isEqual(targetCell, state.steps[state.steps.length - 1])) {
+              return;
+            }
 
             if (state.isVisited(targetCell)) {
               // Go back to this cell
@@ -58,6 +65,10 @@ export function createGameStore(grid: GridData) {
                 console.warn(
                   "UNEXPECTED: No step found that passes through the cell",
                 );
+                return;
+              }
+
+              if (isDragging && involvedStepIndex < state.steps.length - 2) {
                 return;
               }
 
