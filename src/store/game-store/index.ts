@@ -1,4 +1,8 @@
-import { isBetween, onSameRowOrCol } from "@/lib/grid-helper";
+import {
+  checkIfGridCompleted,
+  isBetween,
+  onSameRowOrCol,
+} from "@/lib/grid-helper";
 import type { GridData } from "@/types/grid";
 import { createStore } from "zustand";
 import { immer } from "zustand/middleware/immer";
@@ -33,6 +37,8 @@ export function createGameStore(grid: GridData) {
           }),
         makeMove: (targetCell) =>
           set((state) => {
+            if (state.finishedAt) return;
+
             if (state.isVisited(targetCell)) {
               // Go back to this cell
 
@@ -102,6 +108,10 @@ export function createGameStore(grid: GridData) {
               } else {
                 state.steps[state.steps.length - 1] = targetCell;
               }
+            }
+
+            if (checkIfGridCompleted(state)) {
+              state.finishedAt = new Date();
             }
           }),
       },

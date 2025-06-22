@@ -1,26 +1,9 @@
 import { createGameStore } from "@/store/game-store";
 import type { GridData } from "@/types/grid";
-import {
-  createContext,
-  useContext,
-  useRef,
-  type PropsWithChildren,
-} from "react";
-import { useStore } from "zustand";
+import { useRef, type PropsWithChildren } from "react";
+import { GameContext } from "./context";
 
-const GameContext = createContext<ReturnType<typeof createGameStore> | null>(
-  null,
-);
-
-export function useGameContext() {
-  const context = useContext(GameContext);
-  if (!context) {
-    throw new Error("useGameContext must be used within a GameProvider");
-  }
-  return useStore(context);
-}
-
-type GameProviderProps = PropsWithChildren<{
+export type GameProviderProps = PropsWithChildren<{
   grid: GridData;
 }>;
 

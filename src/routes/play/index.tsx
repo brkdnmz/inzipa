@@ -1,6 +1,6 @@
 import { GameGrid } from "@/components/game-grid";
 import { BORDER_WIDTH, CELL_SIZE, GRID_SIZE } from "@/constants";
-import { GameProvider } from "@/context/game-context";
+import { GameProvider } from "@/context/game-context/provider";
 import { generatePath } from "@/lib/path-gen";
 import { array2d, shuffleArray } from "@/lib/util";
 import type { GridData } from "@/types/grid";
