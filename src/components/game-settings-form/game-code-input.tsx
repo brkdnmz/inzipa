@@ -1,4 +1,4 @@
-import { Help } from "@mui/icons-material";
+import Help from "@mui/icons-material/Help"; // https://mui.com/material-ui/guides/minimizing-bundle-size/#avoid-barrel-imports
 import {
   IconButton,
   InputAdornment,
